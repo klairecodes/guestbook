@@ -2,7 +2,73 @@ syntax = "proto3";
 package guestbook;
 
 message Guestbook {
-    repeated Entry entires = 1;
+  int32 id = 1;
+  int32 start_date = 2;
+  int32 end_date = 3;
+  int32 host = 4;
+  int32 image_path = 5;
+  repeated Entry entires = 6;
+}
+
+service Guestbooks {
+  rpc create (CreateGuestbook) returns (CreateGuestbookResponse);
+  rpc get (GetGuestbookRequest) returns (GuestbookResponse);
+  rpc get_many (GetGuestbooksRequest) returns (GuestbooksResponse);
+  rpc search (SearchGuestbookRequest) returns (GuestbooksResponse);
+  rpc update (UpdateGuestbookRequest) returns (UpdateGuestbookResponse);
+  rpc delete (DeleteGuestbookRequest) returns (DeleteGuestbookResponse);
+}
+
+message CreateGuestbook {
+  int32 start_date = 1;
+  int32 end_date = 2;
+  int32 host = 3;
+  int32 image_path = 4;
+  repeated Entry entires = 5;
+}
+
+message CreateGuestbookResponse {
+  Guestbook guestbook = 1;
+}
+
+message GetGuestbookRequest {
+  Guestbook guestbook = 1;
+}
+
+message GetGuestbooksRequest {
+  repeated Guestbook guestbook = 1;
+}
+
+message GuestbookResponse {
+  Guestbook guestbook = 1;
+}
+
+message GuestbooksResponse {
+  repeated Guestbook guestbook = 1;
+}
+
+message SearchGuestbookRequest {
+  Guestbook guestbook = 1;
+  string query = 2;
+}
+
+message UpdateGuestbookRequest {
+  string token = 1;
+  string guestbook_id = 2;
+  Guestbook update = 3;
+}
+
+message UpdateGuestbookResponse {
+  uint32 number_updated = 1;
+}
+
+message DeleteGuestbookRequest {
+  string token = 1;
+  string guestbook_id = 2;
+}
+
+message DeleteGuestbookResponse {
+  uint32 number_deleted = 1;
 }
 
 message Entry {
@@ -10,6 +76,8 @@ message Entry {
   string title = 2;
   string content = 3;
   string author = 4;
+  string image_path = 5;
+  Guestbook parent_guestbook = 6;
 }
 
 service Entries {
@@ -25,7 +93,10 @@ message CreateEntry {
   string title = 1;
   string content = 2;
   string author = 3;
+  optional string image_path = 4;
+  Guestbook guestbook = 5;
 }
+
 message CreateEntryResponse {
   Entry entry = 1;
 }
@@ -48,7 +119,7 @@ message EntriesResponse {
 
 message SearchEntryRequest {
     Guestbook guestbook = 1;
-    string query = 2
+    string query = 2;
 }
 
 message UpdateEntryRequest {
