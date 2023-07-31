@@ -1,0 +1,72 @@
+syntax = "proto3";
+package guestbook;
+
+message Guestbook {
+    repeated Entry entires = 1;
+}
+
+message Entry {
+  int32 id = 1;
+  string title = 2;
+  string content = 3;
+  string author = 4;
+}
+
+service Entries {
+  rpc create (CreateEntry) returns (CreateEntryResponse);
+  rpc get (GetEntryRequest) returns (EntryResponse);
+  rpc get_many (GetEntriesRequest) returns (EntriesResponse);
+  rpc search (SearchEntryRequest) returns (EntriesResponse);
+  rpc update (UpdateEntryRequest) returns (UpdateEntryResponse);
+  rpc delete (DeleteEntryResponse) returns (DeleteEntryResponse);
+}
+
+message CreateEntry {
+  string title = 1;
+  string content = 2;
+  string author = 3;
+}
+message CreateEntryResponse {
+  Entry entry = 1;
+}
+
+message GetEntryRequest {
+    Entry entry = 1;
+}
+
+message GetEntriesRequest {
+    Entry entry = 1;
+}
+
+message EntryResponse {
+    Entry result = 1;
+}
+
+message EntriesResponse {
+    repeated Entry results = 1;
+}
+
+message SearchEntryRequest {
+    Guestbook guestbook = 1;
+    string query = 2
+}
+
+message UpdateEntryRequest {
+    string token = 1;
+    string entry_id = 2;
+    Entry update = 3;
+}
+
+message UpdateEntryResponse {
+    uint32 number_updated = 1;
+}
+
+message DeleteEntryRequest {
+    string token = 1;
+    string entry_id = 2;
+}
+
+message DeleteEntryResponse {
+    uint32 number_deleted = 1;
+}
+
