@@ -4,8 +4,11 @@ use tonic::{Request, Response, Status};
 #[derive(Debug)]
 struct GuestbookService;
 
+// TODO: reflector API support
 pub mod guestbook {
     tonic::include_proto!("guestbook");
+    pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
+    tonic::include_file_descriptor_set!("guestbook");
 }
 
 // why?? crate::guestbook::entries_server::Entries
@@ -43,7 +46,17 @@ impl Guestbooks for GuestbookService {
         &self,
         req: Request<GetGuestbookRequest>,
     ) -> Result<Response<GuestbookResponse>, Status> {
-        unimplemented!()
+        let GetGuestbookRequest = {};
+        let result = guestbook::Guestbook {
+            id: 69,
+            start_date: 1,
+            end_date: 2,
+            host: "Potter".to_owned(),
+            image_path: "".to_owned(),
+            entries: Vec::new(),
+        };
+
+        Ok(Response::new(GuestbookResponse { guestbook: Some(result.into()) }))
     }
 
     async fn get_many(
@@ -77,6 +90,12 @@ impl Guestbooks for GuestbookService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // TODO: reflector API support
+    let service = tonic_reflection::server::Builder::configure()
+        //.register_encoded_file_descriptor_set(guestbook::FILE_DESCRIPTOR_SET)
+        .build()
+        .unwrap();
+
     let addr = "[::1]:10000".parse().unwrap();
 
     let guest_book = GuestbookService {};
