@@ -7,8 +7,6 @@ struct GuestbookService;
 // TODO: reflector API support
 pub mod guestbook {
     tonic::include_proto!("guestbook");
-    pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
-    tonic::include_file_descriptor_set!("guestbook");
 }
 
 // why?? crate::guestbook::entries_server::Entries

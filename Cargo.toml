@@ -5,12 +5,6 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[[bin]]
-name = "reflection-server"
-path = "src/reflection/server.rs"
-required-features = ["reflection"]
-
-
 [dependencies]
 tonic = "0.9"
 prost = "0.11"
