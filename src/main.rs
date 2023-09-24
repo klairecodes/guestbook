@@ -88,12 +88,6 @@ impl Guestbooks for GuestbookService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: reflector API support
-    let service = tonic_reflection::server::Builder::configure()
-        //.register_encoded_file_descriptor_set(guestbook::FILE_DESCRIPTOR_SET)
-        .build()
-        .unwrap();
-
     let addr = "[::1]:10000".parse().unwrap();
 
     let guest_book = GuestbookService {};
