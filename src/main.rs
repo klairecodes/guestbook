@@ -1,3 +1,5 @@
+mod db;
+use std::env;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
@@ -25,7 +27,11 @@ impl Guestbooks for GuestbookService {
     ) -> Result<Response<CreateGuestbookResponse>, Status> {
         println!("Got a request {:?}.", req);
         let CreateGuestbook {
-            start_date, end_date, host, image_path, entries
+            start_date,
+            end_date,
+            host,
+            image_path,
+            entries,
         } = req.into_inner();
 
         let reply = guestbook::Guestbook {
@@ -37,7 +43,17 @@ impl Guestbooks for GuestbookService {
             entries: Vec::new(),
         };
 
-        Ok(Response::new(CreateGuestbookResponse { guestbook: Some(reply) }))
+        //sqlx::query(
+        //"
+        //INSERT INTO
+        //",
+        //)
+        //.execute()
+        //.await?;
+
+        Ok(Response::new(CreateGuestbookResponse {
+            guestbook: Some(reply),
+        }))
     }
 
     async fn get(
@@ -54,7 +70,9 @@ impl Guestbooks for GuestbookService {
             entries: Vec::new(),
         };
 
-        Ok(Response::new(GuestbookResponse { guestbook: Some(result.into()) }))
+        Ok(Response::new(GuestbookResponse {
+            guestbook: Some(result.into()),
+        }))
     }
 
     async fn get_many(
@@ -88,14 +106,47 @@ impl Guestbooks for GuestbookService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:10000".parse().unwrap();
+    //let addr = "[::1]:10000".parse().unwrap();
 
-    let guest_book = GuestbookService {};
+    //let guest_book = GuestbookService {};
 
-    let svc = GuestbooksServer::new(guest_book);
+    //let svc = GuestbooksServer::new(guest_book);
 
-    println!("Server running on {}... in theory...", addr);
-    Server::builder().add_service(svc).serve(addr).await?;
+    //println!("Server running on {}... in theory...", addr);
+    //Server::builder().add_service(svc).serve(addr).await?;
+
+    sqlx::query(
+        "
+    CREATE TABLE IF NOT EXISTS guestbook (
+    uuid integer UNIQUE NOT NULL PRIMARY KEY,
+    creation_time TIMESTAMP,
+    start_date DATE,
+    end_date DATE,
+    host varchar,
+    image_path varchar,
+    entries varchar[]
+    );
+    ",
+    )
+    .execute(&db::APP_STATE.db_pool)
+    .await?;
+
+    sqlx::query(
+        "INSERT INTO guestbook VALUES (
+        '2024', '2024-01-01', '2024-01-01', 'Potter', 's3.dummy/', []
+        );
+        ",
+    )
+    .execute(&db::APP_STATE.db_pool)
+    .await?;
+
+    sqlx::query(
+        "
+        DROP TABLE guestbook;
+        ",
+    )
+    .execute(&db::APP_STATE.db_pool)
+    .await?;
 
     Ok(())
 }

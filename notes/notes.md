@@ -12,3 +12,7 @@
     - https://github.com/fullstorydev/grpcurl#docker
 - command to run grpcurl under podman container (Arch aur package broken :( )
     - `podman run --network="host" -v /home/klaire/Dropbox/code/web-projects/guestbook/proto:/protos/ fullstorydev/grpcurl -import-path /protos -plaintext -proto /protos/guestbook.proto localhost:10000 guestbook.Guestbooks/get`
+
+## SQLx
+- use `cargo add sqlx --features runtime-async-std-native-tls,chrono,postgres,macros`
+    - TLSsssssssssssssss
