@@ -16,3 +16,6 @@
 ## SQLx
 - use `cargo add sqlx --features runtime-async-std-native-tls,chrono,postgres,macros`
     - TLSsssssssssssssss
+
+## Quickest PostgreSQL/Podman setup of all time:
+https://medium.com/@pawanpg0963/run-postgresql-with-podman-as-docker-container-86ad392349d1
