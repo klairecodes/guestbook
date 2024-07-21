@@ -1,39 +1,65 @@
-use dotenv::dotenv;
-use lazy_static::lazy_static;
-use sqlx::postgres::{PgPool, PgPoolOptions};
-use std::env;
-use tokio::runtime;
+// db.rs
+use sqlx::query;
+use sqlx::{PgPool, Postgres, Transaction};
+use std::error::Error;
 
-// a struct to hold the database pool.
-pub struct AppState {
-    pub db_pool: PgPool,
+pub async fn insert_and_verify(
+    transaction: &mut Transaction<'_, Postgres>,
+    test_id: i64,
+) -> Result<(), Box<dyn Error>> {
+    query!(
+        r#"INSERT INTO todos (id, description)
+        VALUES ( $1, $2 )
+        "#,
+        test_id,
+        "test todo"
+    )
+    .execute(&mut **transaction)
+    .await?;
+
+    // check that inserted todo can be fetched inside the uncommitted transaction
+    let _ = query!(r#"SELECT FROM todos WHERE id = $1"#, test_id)
+        .fetch_one(&mut **transaction)
+        .await?;
+
+    Ok(())
 }
 
-// initialize the SQLx PostgreSQL pool lazily.
-lazy_static! {
-    pub static ref APP_STATE: AppState = {
-        // Read database connection details from environment variables.
-        dotenv::dotenv().ok();
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
+pub async fn explicit_rollback_example(
+    pool: &PgPool,
+    test_id: i64,
+) -> Result<(), Box<dyn Error>> {
+    let mut transaction = pool.begin().await?;
 
-        //// Create the database pool.
-        //let db_pool = PgPoolOptions::new()
-            //.max_connections(5) // Adjust the maximum number of connections as needed.
-            //.connect(&database_url);
+    insert_and_verify(&mut transaction, test_id).await?;
 
-        // Create the tokio runtime to run asynchronous tasks.
-        let rt = runtime::Runtime::new().unwrap();
+    transaction.rollback().await?;
 
-        // Create the database pool within the tokio runtime.
-        let db_pool = rt.block_on(async {
-            PgPoolOptions::new()
-                .max_connections(5) // Adjust the maximum number of connections as needed.
-                .connect(&database_url)
-                .await
-                .expect("Failed to create database pool")
-        });
-                //
-        // Return the application state with the database pool.
-        AppState { db_pool }
-    };
+    Ok(())
 }
+
+pub async fn implicit_rollback_example(
+    pool: &PgPool,
+    test_id: i64,
+) -> Result<(), Box<dyn Error>> {
+    let mut transaction = pool.begin().await?;
+
+    insert_and_verify(&mut transaction, test_id).await?;
+
+    // no explicit rollback here but the transaction object is dropped at the end of the scope
+    Ok(())
+}
+
+pub async fn commit_example(
+    pool: &PgPool,
+    test_id: i64,
+) -> Result<(), Box<dyn Error>> {
+    let mut transaction = pool.begin().await?;
+
+    insert_and_verify(&mut transaction, test_id).await?;
+
+    transaction.commit().await?;
+
+    Ok(())
+}
+
