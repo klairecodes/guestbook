@@ -62,3 +62,5 @@ async fn main() -> std::io::Result<()> {
         .await
 }
 ```
+lol this was immediately the next page in the docs:
+https://actix.rs/docs/application#configure`
