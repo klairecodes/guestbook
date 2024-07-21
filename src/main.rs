@@ -1,6 +1,6 @@
 mod db;
-use std::env;
-use tonic::transport::Server;
+
+use tokio::runtime;
 use tonic::{Request, Response, Status};
 
 #[derive(Debug)]
@@ -12,10 +12,10 @@ pub mod guestbook {
 }
 
 // why?? crate::guestbook::entries_server::Entries
-use guestbook::guestbooks_server::{Guestbooks, GuestbooksServer};
+use guestbook::guestbooks_server::Guestbooks;
 use guestbook::{
     CreateGuestbook, CreateGuestbookResponse, DeleteGuestbookRequest, DeleteGuestbookResponse,
-    GetGuestbookRequest, GetGuestbooksRequest, Guestbook, GuestbookResponse, GuestbooksResponse,
+    GetGuestbookRequest, GetGuestbooksRequest, GuestbookResponse, GuestbooksResponse,
     SearchGuestbookRequest, UpdateGuestbookRequest, UpdateGuestbookResponse,
 };
 
@@ -27,11 +27,11 @@ impl Guestbooks for GuestbookService {
     ) -> Result<Response<CreateGuestbookResponse>, Status> {
         println!("Got a request {:?}.", req);
         let CreateGuestbook {
-            start_date,
-            end_date,
-            host,
-            image_path,
-            entries,
+            start_date: _,
+            end_date: _,
+            host: _,
+            image_path: _,
+            entries: _,
         } = req.into_inner();
 
         let reply = guestbook::Guestbook {
@@ -58,9 +58,9 @@ impl Guestbooks for GuestbookService {
 
     async fn get(
         &self,
-        req: Request<GetGuestbookRequest>,
+        _req: Request<GetGuestbookRequest>,
     ) -> Result<Response<GuestbookResponse>, Status> {
-        let GetGuestbookRequest = {};
+        let _get_guestbook_request = {};
         let result = guestbook::Guestbook {
             id: 69,
             start_date: 1,
@@ -77,28 +77,28 @@ impl Guestbooks for GuestbookService {
 
     async fn get_many(
         &self,
-        req: Request<GetGuestbooksRequest>,
+        _req: Request<GetGuestbooksRequest>,
     ) -> Result<Response<GuestbooksResponse>, Status> {
         unimplemented!()
     }
 
     async fn search(
         &self,
-        req: Request<SearchGuestbookRequest>,
+        _req: Request<SearchGuestbookRequest>,
     ) -> Result<Response<GuestbooksResponse>, Status> {
         unimplemented!()
     }
 
     async fn update(
         &self,
-        req: Request<UpdateGuestbookRequest>,
+        _req: Request<UpdateGuestbookRequest>,
     ) -> Result<Response<UpdateGuestbookResponse>, Status> {
         unimplemented!()
     }
 
     async fn delete(
         &self,
-        req: Request<DeleteGuestbookRequest>,
+        _req: Request<DeleteGuestbookRequest>,
     ) -> Result<Response<DeleteGuestbookResponse>, Status> {
         unimplemented!()
     }
@@ -114,6 +114,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     //println!("Server running on {}... in theory...", addr);
     //Server::builder().add_service(svc).serve(addr).await?;
+
+    //let rt = runtime::Runtime::enter(&self);
+    let rt = runtime::Runtime::new().unwrap();
+    let _ = rt.enter();
 
     sqlx::query(
         "

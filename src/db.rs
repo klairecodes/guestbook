@@ -1,3 +1,4 @@
+use dotenv::dotenv;
 use lazy_static::lazy_static;
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::env;
@@ -12,6 +13,7 @@ pub struct AppState {
 lazy_static! {
     pub static ref APP_STATE: AppState = {
         // Read database connection details from environment variables.
+        dotenv::dotenv().ok();
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
 
         //// Create the database pool.
