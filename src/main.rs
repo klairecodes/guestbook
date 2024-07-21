@@ -2,6 +2,7 @@ mod db;
 mod server;
 
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use sqlx::query;
 use sqlx::PgPool;
 use std::error::Error;
@@ -25,22 +26,29 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // load all environment variables from .env file
     dotenvy::dotenv()?;
 
+    // Set up SSL
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+    builder
+        .set_private_key_file("key.pem", SslFiletype::PEM)
+        .unwrap();
+    builder.set_certificate_chain_file("cert.pem").unwrap();
+
     // Set up database connection
     let conn_str =
         std::env::var("DATABASE_URL").expect("Env var DATABASE_URL is required for this example.");
     let pool = PgPool::connect(&conn_str).await?;
 
     // Start web server
-    // TODO: do not ignore the error
-    let _ = HttpServer::new(|| {
+    HttpServer::new(|| {
         App::new()
             .service(hello)
             .service(echo)
             .route("/hey", web::get().to(manual_hello))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind_openssl("127.0.0.1:8080", builder)?
     .run()
-    .await;
+    .await
+    .expect("Could not start web server.");
 
     let test_id = 1;
 
