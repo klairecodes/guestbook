@@ -1,17 +1,46 @@
 mod db;
+mod server;
 
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use sqlx::query;
 use sqlx::PgPool;
 use std::error::Error;
 
-#[tokio::main]
+#[get("/")]
+async fn hello() -> impl Responder {
+    HttpResponse::Ok().body("Hello world!")
+}
+
+#[post("/echo")]
+async fn echo(req_body: String) -> impl Responder {
+    HttpResponse::Ok().body(req_body)
+}
+
+async fn manual_hello() -> impl Responder {
+    HttpResponse::Ok().body("Hey there!")
+}
+
+#[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // load all environment variables from .env file
     dotenvy::dotenv()?;
 
+    // Set up database connection
     let conn_str =
         std::env::var("DATABASE_URL").expect("Env var DATABASE_URL is required for this example.");
     let pool = PgPool::connect(&conn_str).await?;
+
+    // Start web server
+    // TODO: do not ignore the error
+    let _ = HttpServer::new(|| {
+        App::new()
+            .service(hello)
+            .service(echo)
+            .route("/hey", web::get().to(manual_hello))
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await;
 
     let test_id = 1;
 
