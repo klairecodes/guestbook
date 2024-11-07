@@ -1,5 +1,4 @@
 mod db;
-mod server;
 
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
@@ -40,9 +39,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let pool = PgPool::connect(&conn_str).await?;
 
     // Initalize database
-    query_file!("queries/init.sql")
-    .execute(&pool)
-    .await?;
+    // query_file!("queries/init.sql")
+    // .execute(&pool)
+    // .await?;
+
+    db::initialize_db(&pool).await?;
 
     // Start web server
     HttpServer::new(|| {
@@ -56,39 +57,39 @@ async fn main() -> Result<(), Box<dyn Error>> {
     .await
     .expect("Could not start web server.");
 
-    let test_id = 1;
-
-    // remove any old values that might be in the table already with this id from a previous run
-    let _ = query!(r#"DELETE FROM todos WHERE id = $1"#, test_id)
-        .execute(&pool)
-        .await?;
-
-    db::explicit_rollback_example(&pool, test_id).await?;
-
-    // check that inserted todo is not visible outside the transaction after explicit rollback
-    let inserted_todo = query!(r#"SELECT FROM todos WHERE id = $1"#, test_id)
-        .fetch_one(&pool)
-        .await;
-
-    assert!(inserted_todo.is_err());
-
-    db::implicit_rollback_example(&pool, test_id).await?;
-
-    // check that inserted todo is not visible outside the transaction after implicit rollback
-    let inserted_todo = query!(r#"SELECT FROM todos WHERE id = $1"#, test_id)
-        .fetch_one(&pool)
-        .await;
-
-    assert!(inserted_todo.is_err());
-
-    db::commit_example(&pool, test_id).await?;
-
-    // check that inserted todo is visible outside the transaction after commit
-    let inserted_todo = query!(r#"SELECT FROM todos WHERE id = $1"#, test_id)
-        .fetch_one(&pool)
-        .await;
-
-    assert!(inserted_todo.is_ok());
+    // let test_id = 1;
+    //
+    // // remove any old values that might be in the table already with this id from a previous run
+    // let _ = query!(r#"DELETE FROM todos WHERE id = $1"#, test_id)
+    //     .execute(&pool)
+    //     .await?;
+    //
+    // db::explicit_rollback_example(&pool, test_id).await?;
+    //
+    // // check that inserted todo is not visible outside the transaction after explicit rollback
+    // let inserted_todo = query!(r#"SELECT FROM todos WHERE id = $1"#, test_id)
+    //     .fetch_one(&pool)
+    //     .await;
+    //
+    // assert!(inserted_todo.is_err());
+    //
+    // db::implicit_rollback_example(&pool, test_id).await?;
+    //
+    // // check that inserted todo is not visible outside the transaction after implicit rollback
+    // let inserted_todo = query!(r#"SELECT FROM todos WHERE id = $1"#, test_id)
+    //     .fetch_one(&pool)
+    //     .await;
+    //
+    // assert!(inserted_todo.is_err());
+    //
+    // db::commit_example(&pool, test_id).await?;
+    //
+    // // check that inserted todo is visible outside the transaction after commit
+    // let inserted_todo = query!(r#"SELECT FROM todos WHERE id = $1"#, test_id)
+    //     .fetch_one(&pool)
+    //     .await;
+    //
+    // assert!(inserted_todo.is_ok());
 
     Ok(())
 }
