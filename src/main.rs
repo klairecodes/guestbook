@@ -5,6 +5,7 @@ use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use sqlx::query;
 use sqlx::PgPool;
+use sqlx::query_file;
 use std::error::Error;
 
 #[get("/")]
@@ -37,6 +38,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let conn_str =
         std::env::var("DATABASE_URL").expect("Env var DATABASE_URL is required for this example.");
     let pool = PgPool::connect(&conn_str).await?;
+
+    // Initalize database
+    query_file!("queries/init.sql")
+    .execute(&pool)
+    .await?;
 
     // Start web server
     HttpServer::new(|| {
